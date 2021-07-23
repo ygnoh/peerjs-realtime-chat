@@ -1,27 +1,27 @@
 import React from "react";
 import Peer from "peerjs";
 
+const ids = []; // store every ids to connect each other
+
 class User extends React.PureComponent {
-    state = {
-        id: undefined
-    };
+    _id;
 
     componentDidMount() {
         this._peer = new Peer();
 
         this._peer.on("open", id => {
-            this.setState({id});
+            this._id = id;
+
+            ids.push(id);
         });
     }
 
     render() {
         const {index} = this.props;
-        const {id} = this.state;
 
         return (
             <div>
                 <h2>User {index}</h2>
-                <p>Connect with me: {id}</p>
             </div>
         );
     }
