@@ -1,53 +1,91 @@
 import React from "react";
 import Peer from "peerjs";
 
-const peers = [];
-const connect = () => {
-    for (let i = 0; i < peers.length; i++) {
-        for (let j = i + 1; j < peers.length; j++) {
-            peers[j].connect(peers[i].id);
-        }
-    }
-};
-
 class User extends React.PureComponent {
     _conns = [];
+    state = {
+        connected: false,
+        chats: []
+    };
 
     componentDidMount() {
-        this._peer = new Peer();
+        const {index, peers} = this.props;
+        const me = peers[index];
 
-        this._peer.on("open", () => {
-            this.props.onReady();
-            peers.push(this._peer);
+        me.on("connection", conn => {
+            this._handleConnect(conn);
         });
 
-        this._peer.on("connection", conn => {
-            conn.on("open", () => {
-                console.log("Connected successfully", conn);
+        peers.slice(index + 1)
+            .map(p => me.connect(p.id))
+            .forEach(conn => {
+                this._handleConnect(conn);
+            });
+    }
 
-                this._conns.push(conn);
+    _handleConnect(conn) {
+        conn.on("open", () => {
+            this._conns.push(conn);
+
+            if (this._conns.length === this.props.peers.length - 1) {
+                this.setState({connected: true});
+            }
+
+            conn.on("data", data => {
+                this.setState(prev => ({chats: [...prev.chats, data]}));
             });
         });
     }
 
     render() {
         const {index} = this.props;
+        const {connected, chats} = this.state;
+
+        if (!connected) {
+            return <p>connecting...</p>;
+        }
 
         return (
             <div>
                 <h2>User {index}</h2>
+                <input type="text" ref={this._input} />
+                <button onClick={this._send}>Send</button>
+                <ul>
+                    {chats.map((c, i) => <li key={i}>{c}</li>)}
+                </ul>
             </div>
         );
     }
+
+    _input = React.createRef();
+
+    _send = () => {
+        const {value} = this._input.current;
+
+        this.setState(prev => ({chats: [...prev.chats, value]}));
+        this._conns.forEach(conn => conn.send(value));
+    };
 }
 
 class App extends React.PureComponent {
-    _users = [1, 2, 3];
     _readyCount = 0;
+    _peers = [new Peer(), new Peer(), new Peer()];
 
     state = {
         ready: false
     };
+
+    componentDidMount() {
+        this._peers.forEach(p => {
+            p.on("open", () => {
+                this._readyCount++;
+
+                if (this._readyCount === this._peers.length) {
+                    this.setState({ready: true});
+                }
+            });
+        });
+    }
 
     render() {
         const {ready} = this.state;
@@ -55,20 +93,14 @@ class App extends React.PureComponent {
         return (
             <div>
                 <h1>A POC for multi-peer connection</h1>
-                <button onClick={connect} disabled={!ready}>Start connecting</button>
-                {this._users.map(i => <User key={i} index={i} onReady={this._handleReady} />)}
+                {
+                    ready ?
+                        this._peers.map((p, i) => <User key={i} index={i} peers={this._peers} />) :
+                        "loading..."
+                }
             </div>
         );
     }
-
-    _handleReady = () => {
-        this._readyCount++;
-
-        if (this._readyCount === this._users.length) {
-            this.setState({ready: true});
-            console.log("Ready to connect each other");
-        }
-    };
 }
 
 export default App;
