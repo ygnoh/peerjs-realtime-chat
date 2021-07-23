@@ -9,7 +9,10 @@ class User extends React.PureComponent {
     componentDidMount() {
         this._peer = new Peer();
 
-        peers.push(this._peer);
+        this._peer.on("open", () => {
+            this.props.onReady();
+            peers.push(this._peer);
+        });
 
         this._peer.on("connection", conn => {
             conn.on("open", () => {
@@ -32,12 +35,21 @@ class User extends React.PureComponent {
 }
 
 class App extends React.PureComponent {
+    _users = [1, 2, 3];
+    _readyCount = 0;
+
+    state = {
+        ready: false
+    };
+
     render() {
+        const {ready} = this.state;
+
         return (
             <div>
                 <h1>A POC for multi-peer connection</h1>
-                <button onClick={this._connect}>Start connecting</button>
-                {[1, 2, 3].map(i => <User key={i} index={i} />)}
+                <button onClick={this._connect} disabled={!ready}>Start connecting</button>
+                {this._users.map(i => <User key={i} index={i} onReady={this._handleReady} />)}
             </div>
         );
     }
@@ -49,6 +61,15 @@ class App extends React.PureComponent {
             }
         }
     }
+
+    _handleReady = () => {
+        this._readyCount++;
+
+        if (this._readyCount === this._users.length) {
+            this.setState({ready: true});
+            console.log("Ready to connect each other");
+        }
+    };
 }
 
 export default App;
