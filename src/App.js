@@ -1,7 +1,7 @@
 import React from "react";
 import Peer from "peerjs";
 
-class App extends React.PureComponent {
+class User extends React.PureComponent {
     state = {
         id: undefined
     };
@@ -15,11 +15,24 @@ class App extends React.PureComponent {
     }
 
     render() {
+        const {index} = this.props;
         const {id} = this.state;
 
         return (
             <div>
+                <h2>User {index}</h2>
                 <p>Connect with me: {id}</p>
+            </div>
+        );
+    }
+}
+
+class App extends React.PureComponent {
+    render() {
+        return (
+            <div>
+                <h1>A POC for multi-peer connection</h1>
+                {[1, 2, 3].map(i => <User key={i} index={i} />)}
             </div>
         );
     }
