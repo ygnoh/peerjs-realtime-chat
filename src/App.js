@@ -1,5 +1,6 @@
 import React from "react";
 import Peer from "peerjs";
+import './App.css';
 
 class User extends React.PureComponent {
     _conns = [];
@@ -45,7 +46,7 @@ class User extends React.PureComponent {
         const {connected, chats} = this.state;
 
         if (!connected) {
-            return <p>connecting...</p>;
+            return <p>Connecting to each other...</p>;
         }
 
         return (
@@ -106,12 +107,14 @@ class App extends React.PureComponent {
 
         return (
             <div>
-                <h1>A POC for multi-peer connection</h1>
-                {
-                    ready ?
-                        this._peers.map((p, i) => <User key={i} index={i} peers={this._peers} />) :
-                        "loading..."
-                }
+                <h1>A POC for multi-peer connection using peerjs</h1>
+                <div className="container">
+                    {
+                        ready ?
+                            this._peers.map((p, i) => <User key={i} index={i} peers={this._peers} />) :
+                            <p>Loading...</p>
+                    }
+                </div>
             </div>
         );
     }
