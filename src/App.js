@@ -1,18 +1,22 @@
 import React from "react";
 import Peer from "peerjs";
 
-const ids = []; // store every ids to connect each other
+const peers = [];
 
 class User extends React.PureComponent {
-    _id;
+    _conns = [];
 
     componentDidMount() {
         this._peer = new Peer();
 
-        this._peer.on("open", id => {
-            this._id = id;
+        peers.push(this._peer);
 
-            ids.push(id);
+        this._peer.on("connection", conn => {
+            conn.on("open", () => {
+                console.log("Connected successfully", conn);
+
+                this._conns.push(conn);
+            });
         });
     }
 
@@ -32,9 +36,18 @@ class App extends React.PureComponent {
         return (
             <div>
                 <h1>A POC for multi-peer connection</h1>
+                <button onClick={this._connect}>Start connecting</button>
                 {[1, 2, 3].map(i => <User key={i} index={i} />)}
             </div>
         );
+    }
+
+    _connect() {
+        for (let i = 0; i < peers.length; i++) {
+            for (let j = i + 1; j < peers.length; j++) {
+                peers[j].connect(peers[i].id);
+            }
+        }
     }
 }
 
