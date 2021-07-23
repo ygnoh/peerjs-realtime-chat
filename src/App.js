@@ -51,7 +51,7 @@ class User extends React.PureComponent {
         return (
             <div>
                 <h2>User {index}</h2>
-                <input type="text" ref={this._input} />
+                <input type="text" ref={this._input} onKeyDown={this._handleKeyDown} />
                 <button onClick={this._send}>Send</button>
                 <ul>
                     {chats.map((c, i) => <li key={i}>{c}</li>)}
@@ -62,11 +62,22 @@ class User extends React.PureComponent {
 
     _input = React.createRef();
 
+    _handleKeyDown = e => {
+        const {keyCode} = e;
+
+        if (keyCode === 13) { // enter
+            this._send();
+        }
+    };
+
     _send = () => {
-        const {value} = this._input.current;
+        const el = this._input.current;
+        const {value} = el;
 
         this.setState(prev => ({chats: [...prev.chats, `me: "${value}"`]}));
         this._conns.forEach(conn => conn.send(value));
+
+        el.value = "";
     };
 }
 
