@@ -24,15 +24,18 @@ class User extends React.PureComponent {
     }
 
     _handleConnect(conn) {
+        const {peers} = this.props;
+        const userIdx = peers.findIndex(p => p.id === conn.peer);
+
         conn.on("open", () => {
             this._conns.push(conn);
 
-            if (this._conns.length === this.props.peers.length - 1) {
+            if (this._conns.length === peers.length - 1) {
                 this.setState({connected: true});
             }
 
             conn.on("data", data => {
-                this.setState(prev => ({chats: [...prev.chats, data]}));
+                this.setState(prev => ({chats: [...prev.chats, `User ${userIdx}: "${data}"`]}));
             });
         });
     }
@@ -62,7 +65,7 @@ class User extends React.PureComponent {
     _send = () => {
         const {value} = this._input.current;
 
-        this.setState(prev => ({chats: [...prev.chats, value]}));
+        this.setState(prev => ({chats: [...prev.chats, `me: "${value}"`]}));
         this._conns.forEach(conn => conn.send(value));
     };
 }
