@@ -2,6 +2,13 @@ import React from "react";
 import Peer from "peerjs";
 
 const peers = [];
+const connect = () => {
+    for (let i = 0; i < peers.length; i++) {
+        for (let j = i + 1; j < peers.length; j++) {
+            peers[j].connect(peers[i].id);
+        }
+    }
+};
 
 class User extends React.PureComponent {
     _conns = [];
@@ -48,18 +55,10 @@ class App extends React.PureComponent {
         return (
             <div>
                 <h1>A POC for multi-peer connection</h1>
-                <button onClick={this._connect} disabled={!ready}>Start connecting</button>
+                <button onClick={connect} disabled={!ready}>Start connecting</button>
                 {this._users.map(i => <User key={i} index={i} onReady={this._handleReady} />)}
             </div>
         );
-    }
-
-    _connect() {
-        for (let i = 0; i < peers.length; i++) {
-            for (let j = i + 1; j < peers.length; j++) {
-                peers[j].connect(peers[i].id);
-            }
-        }
     }
 
     _handleReady = () => {
