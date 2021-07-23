@@ -75,6 +75,10 @@ class User extends React.PureComponent {
         const el = this._input.current;
         const {value} = el;
 
+        if (!value) {
+            return;
+        }
+
         this.setState(prev => ({chats: [...prev.chats, `me: "${value}"`]}));
         this._conns.forEach(conn => conn.send(value));
 
